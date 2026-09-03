@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
 
-st.set_page_config(page_title="Fraud Review Workbench", layout="wide", page_icon="🛡️")
+st.set_page_config(page_title="Fraud Review Workbench", layout="wide")
 
 # --- CUSTOM CSS FOR MINIMALISM ---
 st.markdown("""
@@ -27,7 +27,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ Enterprise Fraud Detection System")
+st.title("Credit Card Fraud Detection System")
 st.markdown("A deep learning-based transaction monitoring system designed to minimize false positives and prevent financial loss.")
 st.markdown("---")
 
@@ -54,7 +54,7 @@ with st.spinner("Initializing Deep Learning Engine..."):
     df, model, scaler, device = load_model_and_data()
 
 # --- KPI METRICS SECTION ---
-st.subheader("📊 System Performance Overview")
+st.subheader("System Performance Overview")
 col1, col2, col3, col4 = st.columns(4)
 col1.metric(label="Total Transactions Analyzed", value=f"{len(df):,}")
 col2.metric(label="Model Accuracy", value="99.94%")
@@ -64,46 +64,10 @@ col4.metric(label="Recall (Fraud Caught)", value="77.89%")
 st.markdown("---")
 
 # --- TABS FOR DIFFERENT VIEWS ---
-tab1, tab2, tab3 = st.tabs(["🚦 Live Analyst Queue", "💳 Manual Predictor", "📈 Confusion Matrix"])
+tab1, tab2 = st.tabs(["Manual Predictor", "Confusion Matrix"])
 
-# --- TAB 1: LIVE ANALYST QUEUE ---
+# --- TAB 1: MANUAL PREDICTOR ---
 with tab1:
-    st.subheader("Live Transaction Monitoring Queue")
-    st.write("Simulating a live feed of 100 random transactions. The system automatically routes them based on risk.")
-    
-    if st.button("Fetch New Transactions", type="primary"):
-        sample_df = df.sample(100, random_state=np.random.randint(0, 10000))
-        X_sample = sample_df.drop(columns=['Class'])
-        y_sample = sample_df['Class']
-        
-        # Predict
-        probs = predict_prob(model, X_sample, device=device)
-        
-        # Use our Decision Bands logic
-        bands = DecisionBands(approve_threshold=0.05, block_threshold=0.10)
-        
-        # Create a display dataframe
-        queue_df = X_sample.copy()
-        queue_df['True Class'] = y_sample.apply(lambda x: 'Fraud' if x==1 else 'Legit')
-        queue_df['Probability'] = probs
-        queue_df['Action Required'] = bands.decide_batch(probs)
-        
-        # Keep only important columns for display
-        display_df = queue_df[['Probability', 'Action Required', 'True Class']].copy()
-        for i in range(1, 6):
-            display_df[f'V{i}'] = queue_df[f'V{i}']
-            
-        display_df = display_df.sort_values(by='Probability', ascending=False).reset_index(drop=True)
-        
-        # Color coding function
-        def color_action(val):
-            color = 'red' if val == 'Block' else 'orange' if val == 'Manual Review' else 'green'
-            return f'color: {color}; font-weight: bold'
-            
-        st.dataframe(display_df.style.map(color_action, subset=['Action Required']), use_container_width=True)
-
-# --- TAB 2: MANUAL PREDICTOR ---
-with tab2:
     st.subheader("Single Transaction Sandbox")
     st.write("Manually test the neural network against custom transaction parameters.")
     
@@ -125,14 +89,14 @@ with tab2:
         
         st.write("---")
         if prob >= 0.10:
-            st.error(f"🚨 **FRAUD DETECTED** (Probability: {prob:.4f}) - Transaction Blocked")
+            st.error(f"**FRAUD DETECTED** (Probability: {prob:.4f}) - Transaction Blocked")
         elif prob >= 0.05:
-            st.warning(f"⚠️ **SUSPICIOUS** (Probability: {prob:.4f}) - Routing to Analyst")
+            st.warning(f"**SUSPICIOUS** (Probability: {prob:.4f}) - Routing to Analyst")
         else:
-            st.success(f"✅ **SAFE** (Probability: {prob:.4f}) - Auto-Approved")
+            st.success(f"**SAFE** (Probability: {prob:.4f}) - Auto-Approved")
 
-# --- TAB 3: CONFUSION MATRIX ---
-with tab3:
+# --- TAB 2: CONFUSION MATRIX ---
+with tab2:
     st.subheader("Model Decision Evaluation")
     st.write("This matrix shows how the model performed on the overall dataset, illustrating the trade-off between False Positives and False Negatives.")
     
