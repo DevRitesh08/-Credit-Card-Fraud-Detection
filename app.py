@@ -100,7 +100,7 @@ with tab1:
             color = 'red' if val == 'Block' else 'orange' if val == 'Manual Review' else 'green'
             return f'color: {color}; font-weight: bold'
             
-        st.dataframe(display_df.style.applymap(color_action, subset=['Action Required']), use_container_width=True)
+        st.dataframe(display_df.style.map(color_action, subset=['Action Required']), use_container_width=True)
 
 # --- TAB 2: MANUAL PREDICTOR ---
 with tab2:
