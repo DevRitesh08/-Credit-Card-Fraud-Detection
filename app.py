@@ -12,23 +12,49 @@ from sklearn.metrics import confusion_matrix
 
 st.set_page_config(page_title="Fraud Review Workbench", layout="wide")
 
-# --- CUSTOM CSS FOR MINIMALISM ---
+# --- CUSTOM CSS FOR MINIMALISM & SLEEK DESIGN ---
 st.markdown("""
 <style>
-    .reportview-container .main .block-container{
-        padding-top: 2rem;
-    }
-    .metric-row {
-        background-color: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
+.stApp {
+    background: linear-gradient(135deg, #0f172a, #111827, #1e293b);
+    color: #f8fafc;
+}
+
+.big-title {
+    text-align: center;
+    color: #38bdf8;
+    font-size: 42px;
+    font-weight: bold;
+    padding-bottom: 10px;
+}
+
+.sub-title {
+    text-align: center;
+    color: #cbd5e1;
+    font-size: 18px;
+    padding-bottom: 30px;
+}
+
+div[data-testid="metric-container"] {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+div[data-testid="metric-container"] label {
+    color: #94a3b8 !important;
+}
+
+div[data-testid="metric-container"] div {
+    color: #38bdf8 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Credit Card Fraud Detection System")
-st.markdown("A deep learning-based transaction monitoring system designed to minimize false positives and prevent financial loss.")
+st.markdown('<div class="big-title">Credit Card Fraud Intelligence</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Predict • Analyze • Protect</div>', unsafe_allow_html=True)
 st.markdown("---")
 
 @st.cache_resource
@@ -66,22 +92,46 @@ st.markdown("---")
 # --- TABS FOR DIFFERENT VIEWS ---
 tab1, tab2 = st.tabs(["Manual Predictor", "Confusion Matrix"])
 
+# --- SESSION STATE INITIALIZATION ---
+if 'tx_data' not in st.session_state:
+    st.session_state.tx_data = {f'V{i}': 0.0 for i in range(1, 29)}
+    st.session_state.tx_data['Amount'] = 150.0
+
 # --- TAB 1: MANUAL PREDICTOR ---
 with tab1:
     st.subheader("Single Transaction Sandbox")
-    st.write("Manually test the neural network against custom transaction parameters.")
+    st.write("Manually test the neural network, or pull real anonymized data from the dataset.")
     
-    col_input1, col_input2 = st.columns(2)
-    amount = col_input1.number_input("Transaction Amount ($)", min_value=0.0, value=150.0)
+    col_btn1, col_btn2 = st.columns(2)
+    
+    if col_btn1.button("Load Random Legitimate Transaction", use_container_width=True):
+        sample = df[df['Class'] == 0].sample(1).iloc[0]
+        for i in range(1, 29):
+            st.session_state.tx_data[f'V{i}'] = float(sample[f'V{i}'])
+        raw_amt = scaler.inverse_transform([[sample['normalizedAmount']]])[0][0]
+        st.session_state.tx_data['Amount'] = float(raw_amt)
+        st.rerun()
+        
+    if col_btn2.button("Load Random Fraudulent Transaction", use_container_width=True):
+        sample = df[df['Class'] == 1].sample(1).iloc[0]
+        for i in range(1, 29):
+            st.session_state.tx_data[f'V{i}'] = float(sample[f'V{i}'])
+        raw_amt = scaler.inverse_transform([[sample['normalizedAmount']]])[0][0]
+        st.session_state.tx_data['Amount'] = float(raw_amt)
+        st.rerun()
+
+    st.markdown("---")
+    
+    amount = st.number_input("Transaction Amount ($)", min_value=0.0, value=st.session_state.tx_data['Amount'])
     
     features = []
-    with st.expander("Advanced Feature Vector (V1-V28 PCA)", expanded=False):
+    with st.expander("Anonymized Feature Vector (V1-V28 PCA)", expanded=False):
         cols = st.columns(4)
         for i in range(1, 29):
-            val = cols[(i-1)%4].number_input(f"V{i}", value=0.0, format="%.2f")
+            val = cols[(i-1)%4].number_input(f"V{i}", value=st.session_state.tx_data[f'V{i}'], format="%.4f")
             features.append(val)
             
-    if st.button("Run Diagnostics"):
+    if st.button("Run AI Diagnostics", type="primary"):
         scaled_amount = scaler.transform(np.array([[amount]]))[0][0]
         input_data = pd.DataFrame([features + [scaled_amount]])
         
