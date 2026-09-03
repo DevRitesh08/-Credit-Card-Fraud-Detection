@@ -55,6 +55,7 @@ if st.button("Predict Risk"):
     input_data = pd.DataFrame([features + [scaled_amount]])
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
     prob = predict_prob(model, input_data, device=device)[0]
     
     st.markdown("### Prediction Result")
