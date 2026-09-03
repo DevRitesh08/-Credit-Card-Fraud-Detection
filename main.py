@@ -21,7 +21,7 @@ def main():
 
     # 1. Load Data
     print("Loading data...")
-    df = load_creditcard_data('creditcard.Rdata')
+    df = load_creditcard_data('data/raw/creditcard.csv')
     
     # Optional: print validation report
     # validation_report = validate_dataframe(df)

@@ -14,7 +14,7 @@ st.markdown("---")
 
 @st.cache_resource
 def load_model_and_data():
-    df = load_creditcard_data('creditcard.Rdata')
+    df = load_creditcard_data('data/raw/creditcard.csv')
     if 'Time' in df.columns:
         df = df.drop(['Time'], axis=1)
     
