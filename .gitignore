@@ -1,0 +1,36 @@
+# Data files
+data/raw/
+data/processed/
+*.csv
+*.Rdata
+*.RData
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Environment
+.env
+.venv
+venv/
+ai-env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Artifacts (optional - can commit if small)
+# artifacts/figures/
+# artifacts/metrics/
+# artifacts/models/
+
+# Private local folders
+private_workspace/
