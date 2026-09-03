@@ -20,7 +20,7 @@ class FraudDetectionModel(nn.Module):
             nn.Linear(20, 24),
             nn.ReLU(),
             nn.Linear(24, 1),
-            nn.Sigmoid(),
+            # Removed Sigmoid for BCEWithLogitsLoss stability
         )
 
     def forward(self, x):
@@ -44,7 +44,14 @@ def train_model(
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     model = model.to(device)
-    criterion = nn.BCELoss()
+    
+    # Calculate pos_weight for highly imbalanced dataset
+    num_pos = y_train.sum()
+    num_neg = len(y_train) - num_pos
+    pos_weight_val = num_neg / num_pos if num_pos > 0 else 1.0
+    pos_weight = torch.tensor([pos_weight_val], device=device)
+    
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     optimizer = optim.Adam(model.parameters())
 
     X_train_t = to_tensor(X_train)
@@ -55,7 +62,7 @@ def train_model(
     train_dataset = TensorDataset(X_train_t, y_train_t)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-    print("\nTraining model...")
+    print(f"\nTraining model with pos_weight={pos_weight_val:.2f}...")
     for epoch in range(epochs):
         model.train()
         running_loss, correct, total = 0.0, 0, 0
@@ -70,7 +77,8 @@ def train_model(
             optimizer.step()
 
             running_loss += loss.item() * batch_X.size(0)
-            correct += ((outputs > 0.5).float() == batch_y).sum().item()
+            # Threshold is 0.0 for logits (equivalent to 0.5 for sigmoid)
+            correct += ((outputs > 0.0).float() == batch_y).sum().item()
             total += batch_y.size(0)
 
         train_loss = running_loss / total
@@ -83,7 +91,7 @@ def train_model(
             y_test_dev = y_test_t.to(device)
             test_outputs = model(X_test_dev)
             test_loss = criterion(test_outputs, y_test_dev).item()
-            test_acc = ((test_outputs > 0.5).float() == y_test_dev).float().mean().item()
+            test_acc = ((test_outputs > 0.0).float() == y_test_dev).float().mean().item()
 
         print(f"Epoch {epoch + 1}/{epochs} - "
               f"train_loss: {train_loss:.4f}, train_acc: {train_acc:.4f} - "
@@ -99,5 +107,7 @@ def predict_prob(model: nn.Module, X: pd.DataFrame, device: torch.device = None)
     X_t = to_tensor(X).to(device)
     with torch.no_grad():
         outputs = model(X_t)
+        # Apply sigmoid to convert logits to probabilities
+        probs = torch.sigmoid(outputs)
     
-    return outputs.cpu().numpy().ravel()
+    return probs.cpu().numpy().ravel()

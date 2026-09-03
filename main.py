@@ -58,7 +58,7 @@ def main():
         X_test=X_test, 
         y_test=y_test, 
         epochs=20, 
-        batch_size=15, 
+        batch_size=4096, 
         device=device
     )
 
