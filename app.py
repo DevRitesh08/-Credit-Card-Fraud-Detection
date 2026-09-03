@@ -76,6 +76,7 @@ def load_model_and_data():
     try:
         import os
         if os.path.exists("fraud_model.pth"):
+            print("Loading trained weights from disk...") # Cache buster
             model.load_state_dict(torch.load("fraud_model.pth", map_location=device))
             model.eval()
     except Exception as e:
