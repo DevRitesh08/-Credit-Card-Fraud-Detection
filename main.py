@@ -62,6 +62,12 @@ def main():
         device=device
     )
 
+    # Save the trained model and scaler for the Streamlit app
+    import joblib
+    torch.save(model.state_dict(), "fraud_model.pth")
+    joblib.dump(scaler, "scaler.pkl")
+    print("Model and scaler saved successfully!")
+
     # 5. Final Evaluation on Test Set
     print("\n" + "="*50)
     print("FINAL EVALUATION (TEST SET)")

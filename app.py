@@ -72,6 +72,15 @@ def load_model_and_data():
     model = FraudDetectionModel(input_dim=input_dim)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    try:
+        import os
+        if os.path.exists("fraud_model.pth"):
+            model.load_state_dict(torch.load("fraud_model.pth", map_location=device))
+            model.eval()
+    except Exception as e:
+        st.warning("Could not load trained model weights. Using random initialization.")
+        
     model = model.to(device)
     
     return df, model, scaler, device
